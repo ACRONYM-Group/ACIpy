@@ -1,0 +1,8 @@
+*.pyc
+.idea/*
+__pycache__/*
+venv/*
+databases/*
+databases - backup/*
+*.conf
+/ACIJS/node_modules/*
