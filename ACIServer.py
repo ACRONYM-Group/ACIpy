@@ -12,7 +12,7 @@ try:
 except Exception as e:
     tb_str = traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)
     print(tb_str)
-    from ACI.database import Database
+    from ACIpy.database import Database
 
 ACIVersion = "2020.07.01.1"
 

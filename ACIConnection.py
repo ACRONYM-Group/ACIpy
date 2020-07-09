@@ -7,7 +7,7 @@ from queue import SimpleQueue
 try:
     from utils import allow_sync
 except Exception:
-    from ACI.utils import allow_sync
+    from ACIpy.utils import allow_sync
 
 
 ACIVersion = "2020.07.01.1"
