@@ -1,7 +1,7 @@
-from ACI.ACI import async_create, create, stop, run
-from ACI.ACIConnection import *
-from ACI.ACIServer import *
-from ACI.errors import *
-from ACI.database import *
+from ACIpy.ACI import async_create, create, stop, run
+from ACIpy.ACIConnection import *
+from ACIpy.ACIServer import *
+from ACIpy.errors import *
+from ACIpy.database import *
 
 Client = Connection
