@@ -127,7 +127,7 @@ class Item:
             values = []
             i = 0
             while i < num:
-                if (table[len(table)-num+i] >= 0):
+                if (len(table)-num+i >= 0):
                     values.append(table[len(table)-num+i])
                 i += 1
             return values
