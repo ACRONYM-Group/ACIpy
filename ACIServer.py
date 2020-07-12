@@ -73,24 +73,24 @@ class Server:
                 await websocket.send(response)
 
             if cmd["cmdType"] == "get_index":
-                response = json.dumps({"cmdType": "get_indexResp", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].get_index(cmd["index"], websocket.user)})
+                response = json.dumps({"cmdType": "get_indexResp", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].get_index(cmd["index"], websocket.user), "key":cmd["key"], "db_key":cmd["db_key"]})
                 await websocket.send(response)
 
             if cmd["cmdType"] == "set_index":
-                response = json.dumps({"cmdType": "set_indexResp", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].set_index(cmd["index"], cmd["value"], websocket.user)})
+                response = json.dumps({"cmdType": "set_indexResp", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].set_index(cmd["index"], cmd["value"], websocket.user), "key":cmd["key"], "db_key":cmd["db_key"]})
                 await websocket.send(response)
 
             if cmd["cmdType"] == "append_index":
-                response = json.dumps({"cmdType": "app_indexResp", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].append_index(cmd["value"], websocket.user)})
+                response = json.dumps({"cmdType": "app_indexResp", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].append_index(cmd["value"], websocket.user), "key":cmd["key"], "db_key":cmd["db_key"]})
                 await websocket.send(response)
 
             if cmd["cmdType"] == "get_len_index":
-                response = json.dumps({"cmdType": "get_len_indexResp", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].get_len(websocket.user)})
+                response = json.dumps({"cmdType": "get_len_indexResp", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].get_len(websocket.user), "key":cmd["key"], "db_key":cmd["db_key"]})
                 await websocket.send(response)
 
             if cmd["cmdType"] == "get_recent_index":
                 print("Client is requesting recent index")
-                response = json.dumps({"cmdType": "get_recent_indexResp", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].get_recent(cmd["num"], websocket.user)})
+                response = json.dumps({"cmdType": "get_recent_indexResp", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].get_recent(cmd["num"], websocket.user), "key":cmd["key"], "db_key":cmd["db_key"]})
                 await websocket.send(response)
                 print("sent")
 
