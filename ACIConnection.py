@@ -25,7 +25,6 @@ async def _recv_handler(websocket, _, responses):
     :return:
     """
     cmd = json.loads(await websocket.recv())
-    print(cmd)
 
     if cmd["cmdType"] == "getResp":
         value = json.dumps(["get_val", cmd["key"], cmd["db_key"], cmd["val"]])
