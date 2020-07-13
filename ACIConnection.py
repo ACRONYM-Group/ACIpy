@@ -237,11 +237,9 @@ class Connection:
             if not self.responses.empty():
                 value = self.responses.get_nowait()
                 cmd = json.loads(value)
-                print(cmd)
                 if tuple(cmd)[:3] == ("get_val", key, db_key):
                     return cmd[3]
                 elif cmd[0] == ("set_val"):
-                    print(cmd[1])
                     return cmd[1]
                 elif cmd[0] == "ld":
                     return cmd[1]
