@@ -10,7 +10,7 @@ except Exception:
     from ACIpy.utils import allow_sync
 
 
-ACIVersion = "2020.07.01.1"
+ACIVersion = "2020.07.14.1"
 
 connections = {}
 
@@ -151,6 +151,11 @@ class DatabaseInterface:
         return response
 
     @allow_sync
+    async def set_value_noack(self, key, val):
+        await self.conn.ws.send(json.dumps({"cmdType": "set_val", "key": key, "db_key": self.db_key, "val": val}))
+        return "no ack"
+
+    @allow_sync
     async def get_value(self, key):
         return await self._get_value(key)
 
@@ -167,10 +172,20 @@ class DatabaseInterface:
         return response
 
     @allow_sync
+    async def set_index_noack(self, key, index, value):
+        await self.conn.ws.send(json.dumps({"cmdType": "set_index", "key": key, "db_key": self.db_key, "index":index, "value": value}))
+        return "no ack"
+
+    @allow_sync
     async def append_index(self, key, value):
         await self.conn.ws.send(json.dumps({"cmdType": "append_index", "key": key, "db_key": self.db_key, "value": value}))
         response = await self.conn.wait_for_response("app_indexResp", key, self.db_key)
         return response
+
+    @allow_sync
+    async def append_index_noack(self, key, value):
+        await self.conn.ws.send(json.dumps({"cmdType": "append_index", "key": key, "db_key": self.db_key, "value": value}))
+        return "no ack"
 
     @allow_sync
     async def get_len_index(self, key):
