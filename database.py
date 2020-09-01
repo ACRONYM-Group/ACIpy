@@ -137,7 +137,7 @@ class Item:
         if user == "backend":
             hasPermission = True
         elif permission in self.permissions:
-            for userPermission in self.permissions["write"]:
+            for userPermission in self.permissions[permission]:
                 if user == "NotAuthed":
                     if userPermission[0] == "a_user" and userPermission[1] == "any":
                         hasPermission = True
