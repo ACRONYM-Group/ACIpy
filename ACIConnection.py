@@ -24,43 +24,50 @@ async def _recv_handler(websocket, _, responses):
     :param responses:
     :return:
     """
-    cmd = json.loads(await websocket.recv())
+    raw = await websocket.recv()
+    cmd = json.loads(raw)
 
     if cmd["cmdType"] == "getResp":
-        value = json.dumps(["get_val", cmd["key"], cmd["db_key"], cmd["val"]])
+        value = json.dumps({"cmd_typ": "get_val", "key":cmd["key"], "db_key": cmd["db_key"], "val": cmd["val"]})
         responses.put(value)
 
     if cmd["cmdType"] == "setResp":
-        value = json.dumps(["set_val", cmd["msg"]])
+        value = json.dumps({"cmd_typ": "set_val", "val": cmd["msg"]})
         responses.put(value)
 
     if cmd["cmdType"] == "ldResp":
-        value = json.dumps(["ld", cmd["msg"]])
+        value = json.dumps({"cmd_typ": "ld", "val": cmd["msg"]})
         responses.put(value)
 
     if cmd["cmdType"] == "a_auth_response":
-        value = json.dumps(["auth_msg", cmd["msg"]])
+        value = json.dumps({"cmd_typ": "auth_msg", "val": cmd["msg"]})
         responses.put(value)
 
     if cmd["cmdType"] == "get_indexResp":
-        value = json.dumps(["get_indexResp", cmd["msg"]])
+        value = json.dumps({"cmd_typ": "get_indexResp", "val": cmd["msg"]})
         responses.put(value)
 
     if cmd["cmdType"] == "set_indexResp":
-        value = json.dumps(["set_indexResp", cmd["msg"]])
+        value = json.dumps({"cmd_typ": "set_indexResp", "val": cmd["msg"]})
         responses.put(value)
 
     if cmd["cmdType"] == "app_indexResp":
-        value = json.dumps(["app_indexResp", cmd["msg"]])
+        value = json.dumps({"cmd_typ": "app_indexResp", "val": cmd["msg"]})
         responses.put(value)
 
     if cmd["cmdType"] == "get_len_indexResp":
-        value = json.dumps(["get_len_indexResp", cmd["msg"]])
+        value = json.dumps({"cmd_typ": "get_len_indexResp", "val": cmd["msg"]})
         responses.put(value)
 
     if cmd["cmdType"] == "get_recent_indexResp":
-        value = json.dumps(["get_recent_indexResp", cmd["msg"]])
+        value = json.dumps({"cmd_typ":"get_recent_indexResp", "val": cmd["msg"]})
         responses.put(value)
+
+    if cmd["cmdType"] == "event":
+        for index in connections:
+            for callback_index in connections[index].event_callbacks:
+                if callback_index.event_id == cmd["event_id"]:
+                    callback_index.function(cmd)
         
 
 
@@ -141,13 +148,13 @@ class DatabaseInterface:
 
     async def _get_value(self, key):
         await self.conn.ws.send(json.dumps({"cmdType": "get_val", "key": key, "db_key": self.db_key}))
-        response = await self.conn.wait_for_response("get_val", key, self.db_key)
+        response = await self.conn.wait_for_response("get_val", key, self.db_key, cmd_type="get_val")
         return response
 
     @allow_sync
     async def set_value(self, key, val):
         await self.conn.ws.send(json.dumps({"cmdType": "set_val", "key": key, "db_key": self.db_key, "val": val}))
-        response = await self.conn.wait_for_response("set_val")
+        response = await self.conn.wait_for_response(cmd_type="set_val")
         return response
 
     @allow_sync
@@ -214,6 +221,11 @@ class DatabaseInterface:
             await self.set_value(key, self._contextual.record[key])
 
 
+class event_callback:
+    def __init__(self, event_id, callback_function):
+        self.event_id = event_id
+        self.function = callback_function
+
 class Connection:
     """
         ACI Connection
@@ -232,15 +244,17 @@ class Connection:
         self.responses = SimpleQueue()
         self.loop = loop
         self.name = name
+        self.id = "not-authed"
 
         self.interfaces = {}
+        self.event_callbacks = []
 
         connections[name] = self
 
     async def start(self):
         await self._create(self.port, self.ip, self.loop, self.responses)
 
-    async def wait_for_response(self, _, key="none", db_key="none"):
+    async def wait_for_response(self, _, key="none", db_key="none", cmd_type="any"):
         """
         Waits for a response
         :param _:
@@ -252,24 +266,26 @@ class Connection:
             if not self.responses.empty():
                 value = self.responses.get_nowait()
                 cmd = json.loads(value)
-                if tuple(cmd)[:3] == ("get_val", key, db_key):
-                    return cmd[3]
-                elif cmd[0] == ("set_val"):
-                    return cmd[1]
-                elif cmd[0] == "ld":
-                    return cmd[1]
-                elif cmd[0] == "auth_msg":
-                    return cmd[1]
-                elif cmd[0] == "get_indexResp":
-                    return cmd[1]
-                elif cmd[0] == "set_indexResp":
-                    return cmd[1]
-                elif cmd[0] == "app_indexResp":
-                    return cmd[1]
-                elif cmd[0] == "get_len_indexResp":
-                    return cmd[1]
-                elif cmd[0] == "get_recent_indexResp":
-                    return cmd[1]
+                if cmd["cmd_typ"] == cmd_type or cmd_type == "any":
+
+                    if cmd["cmd_typ"] == "get_val" and cmd["key"] == key and cmd["db_key"] == db_key:
+                        return cmd["val"]
+                    elif cmd["cmd_typ"] == "set_val":
+                        return cmd["val"]
+                    elif cmd["cmd_typ"] == "ld":
+                        return cmd["val"]
+                    elif cmd["cmd_typ"] == "auth_msg":
+                        return cmd["val"]
+                    elif cmd["cmd_typ"] == "get_indexResp" and cmd["key"] == key and cmd["db_key"] == db_key:
+                        return cmd["val"]
+                    elif cmd["cmd_typ"] == "set_indexResp" and cmd["key"] == key and cmd["db_key"] == db_key:
+                        return cmd["val"]
+                    elif cmd["cmd_typ"] == "app_indexResp" and cmd["key"] == key and cmd["db_key"] == db_key:
+                        return cmd["val"]
+                    elif cmd["cmd_typ"] == "get_len_indexResp" and cmd["key"] == key and cmd["db_key"] == db_key:
+                        return cmd["val"]
+                    elif cmd["cmd_typ"] == "get_recent_indexResp" and cmd["key"] == key and cmd["db_key"] == db_key:
+                        return cmd["val"]
 
     async def _create(self, port, ip, loop, responses):
         """
@@ -327,5 +343,13 @@ class Connection:
 
     @allow_sync
     async def authenticate(self, id, token):
+        self.id = id
         await self.ws.send(json.dumps({"cmdType":"a_auth", "id":id, "token":token}))
         return await self.wait_for_response("auth_msg", None, None)
+
+    @allow_sync
+    async def send_event(self, destination, event_id, data):
+        await self.ws.send(json.dumps({"cmdType":"event", "event_id":event_id, "destination": destination, "data": data, "origin":self.id}))
+
+    def add_event_callback(self, event_callback):
+        self.event_callbacks.append(event_callback)

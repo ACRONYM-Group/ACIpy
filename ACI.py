@@ -14,7 +14,7 @@ except Exception as e:
     print(tb_str)
     print("__init__ was probably loaded, skipping imports")
 
-ACIVersion = "2020.07.01.1"
+ACIVersion = "2020.09.23.1"
 
 
 

@@ -94,6 +94,19 @@ class Server:
                 await websocket.send(response)
                 print("sent")
 
+            
+            if cmd["cmdType"] == "event":
+                print(cmd)
+                print(self.clients)
+                for index in self.clients:
+                    print(index.user_id)
+                    if index.user_id == cmd["destination"]:
+                        print("Sending event to " + cmd["destination"])
+                        try:
+                            await index.websocket.send(raw_cmd)
+                        except:
+                            pass
+
             if cmd["cmdType"] == "wtd":
                 self.write_to_disk(cmd["db_key"])
 
@@ -147,6 +160,7 @@ class Server:
                     if cmd["token"] in a_users[cmd["id"]]["tokens"]:
                         websocket.user = {"user_type":"a_user", "user_id":cmd["id"]}
                         response = json.dumps({"cmdType": "a_auth_response", "msg": "success"})
+                        self.clients.append(ServerClient(cmd["id"], "a_user", websocket, cmd["id"]))
                         await websocket.send(response)
                     else:
                         response = json.dumps({"cmdType": "a_auth_response", "msg": "Failed, token incorrect"})
