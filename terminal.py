@@ -185,6 +185,8 @@ async def exec_instruction(inst, raw_args):
             print("Correct Usage:", usages[inst])
         else:
             raise e
+    except ACI.ACIError as e:
+        print("Error:", e)
 
 
 async def instruction():
