@@ -63,34 +63,34 @@ class Server:
                 user = "NotAuthed"
 
 
-            if cmd["cmdType"] == "get_val":
+            if cmd["cmdType"] == "get_value":
                 response = self.get_response_packet(cmd["key"], cmd["db_key"], websocket.user)
                 await websocket.send(response)
             
-            if cmd["cmdType"] == "set_val":
+            if cmd["cmdType"] == "set_value":
                 newValue = self.dbs[cmd["db_key"]].set(cmd["key"], cmd["val"], websocket.user)
-                response = json.dumps({"cmdType": "setResp", "msg": str(cmd["db_key"]) + "[" + str(cmd["key"]) + "] = " + str(newValue)})
+                response = json.dumps({"cmdType": "set_value", "msg": str(cmd["db_key"]) + "[" + str(cmd["key"]) + "] = " + str(newValue)})
                 await websocket.send(response)
 
             if cmd["cmdType"] == "get_index":
-                response = json.dumps({"cmdType": "get_indexResp", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].get_index(cmd["index"], websocket.user), "key":cmd["key"], "db_key":cmd["db_key"]})
+                response = json.dumps({"cmdType": "get_index", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].get_index(cmd["index"], websocket.user), "key":cmd["key"], "db_key":cmd["db_key"]})
                 await websocket.send(response)
 
             if cmd["cmdType"] == "set_index":
-                response = json.dumps({"cmdType": "set_indexResp", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].set_index(cmd["index"], cmd["value"], websocket.user), "key":cmd["key"], "db_key":cmd["db_key"]})
+                response = json.dumps({"cmdType": "set_index", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].set_index(cmd["index"], cmd["value"], websocket.user), "key":cmd["key"], "db_key":cmd["db_key"]})
                 await websocket.send(response)
 
-            if cmd["cmdType"] == "append_index":
-                response = json.dumps({"cmdType": "app_indexResp", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].append_index(cmd["value"], websocket.user), "key":cmd["key"], "db_key":cmd["db_key"]})
+            if cmd["cmdType"] == "append_list":
+                response = json.dumps({"cmdType": "append_list", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].append_index(cmd["value"], websocket.user), "key":cmd["key"], "db_key":cmd["db_key"]})
                 await websocket.send(response)
 
-            if cmd["cmdType"] == "get_len_index":
-                response = json.dumps({"cmdType": "get_len_indexResp", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].get_len(websocket.user), "key":cmd["key"], "db_key":cmd["db_key"]})
+            if cmd["cmdType"] == "get_list_length":
+                response = json.dumps({"cmdType": "get_list_length", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].get_len(websocket.user), "key":cmd["key"], "db_key":cmd["db_key"]})
                 await websocket.send(response)
 
-            if cmd["cmdType"] == "get_recent_index":
+            if cmd["cmdType"] == "get_recent":
                 print("Client is requesting recent index")
-                response = json.dumps({"cmdType": "get_recent_indexResp", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].get_recent(cmd["num"], websocket.user), "key":cmd["key"], "db_key":cmd["db_key"]})
+                response = json.dumps({"cmdType": "get_recent", "msg": self.dbs[cmd["db_key"]].data[cmd["key"]].get_recent(cmd["num"], websocket.user), "key":cmd["key"], "db_key":cmd["db_key"]})
                 await websocket.send(response)
                 print("sent")
 
@@ -107,16 +107,16 @@ class Server:
                         except:
                             pass
 
-            if cmd["cmdType"] == "wtd":
+            if cmd["cmdType"] == "write_to_disk":
                 self.write_to_disk(cmd["db_key"])
 
-            if cmd["cmdType"] == "rfd":
+            if cmd["cmdType"] == "read_from_disk":
                 self.read_from_disk(cmd["db_key"])
 
-            if (cmd["cmdType"] == "cdb"):
+            if (cmd["cmdType"] == "create_database"):
                 self.dbs[cmd["db_key"]] = Database(cmd["db_key"], read=False, root_dir=self.rootDir)
                 
-            if cmd["cmdType"] == "list_databases":
+            if cmd["cmdType"] == "list_keys":
                 response = json.dumps({"cmdType": "ldResp",
                                        "msg": json.dumps(list(self.dbs[cmd["db_key"]].data.keys()))})
                 await websocket.send(response)
