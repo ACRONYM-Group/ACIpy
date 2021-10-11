@@ -27,43 +27,43 @@ async def _recv_handler(websocket, _, responses):
     raw = await websocket.recv()
     cmd = json.loads(raw)
 
-    if cmd["cmdType"] == "getResp":
+    if cmd["cmd"] == "getResp":
         value = json.dumps({"cmd_typ": "get_val", "key":cmd["key"], "db_key": cmd["db_key"], "val": cmd["val"]})
         responses.put(value)
 
-    if cmd["cmdType"] == "setResp":
+    if cmd["cmd"] == "setResp":
         value = json.dumps({"cmd_typ": "set_val", "val": cmd["msg"]})
         responses.put(value)
 
-    if cmd["cmdType"] == "ldResp":
+    if cmd["cmd"] == "ldResp":
         value = json.dumps({"cmd_typ": "ld", "val": cmd["msg"]})
         responses.put(value)
 
-    if cmd["cmdType"] == "a_auth_response":
+    if cmd["cmd"] == "a_auth_response":
         value = json.dumps({"cmd_typ": "auth_msg", "val": cmd["msg"]})
         responses.put(value)
 
-    if cmd["cmdType"] == "get_indexResp":
+    if cmd["cmd"] == "get_indexResp":
         value = json.dumps({"cmd_typ": "get_indexResp", "val": cmd["msg"]})
         responses.put(value)
 
-    if cmd["cmdType"] == "set_indexResp":
+    if cmd["cmd"] == "set_indexResp":
         value = json.dumps({"cmd_typ": "set_indexResp", "val": cmd["msg"]})
         responses.put(value)
 
-    if cmd["cmdType"] == "app_indexResp":
+    if cmd["cmd"] == "app_indexResp":
         value = json.dumps({"cmd_typ": "app_indexResp", "val": cmd["msg"]})
         responses.put(value)
 
-    if cmd["cmdType"] == "get_len_indexResp":
+    if cmd["cmd"] == "get_len_indexResp":
         value = json.dumps({"cmd_typ": "get_len_indexResp", "val": cmd["msg"]})
         responses.put(value)
 
-    if cmd["cmdType"] == "get_recent_indexResp":
+    if cmd["cmd"] == "get_recent_indexResp":
         value = json.dumps({"cmd_typ":"get_recent_indexResp", "val": cmd["msg"]})
         responses.put(value)
 
-    if cmd["cmdType"] == "event":
+    if cmd["cmd"] == "event":
         for index in connections:
             for callback_index in connections[index].event_callbacks:
                 if callback_index.event_id == cmd["event_id"]:
@@ -125,7 +125,7 @@ class DatabaseInterface:
 
         :return:
         """
-        await self.conn.ws.send(json.dumps({"cmdType": "wtd", "db_key": self.db_key}))
+        await self.conn.ws.send(json.dumps({"cmd": "wtd", "db_key": self.db_key}))
 
     @allow_sync
     async def read_from_disk(self):
@@ -134,7 +134,7 @@ class DatabaseInterface:
 
         :return:
         """
-        await self.conn.ws.send(json.dumps({"cmdType": "rfd", "db_key": self.db_key}))
+        await self.conn.ws.send(json.dumps({"cmd": "rfd", "db_key": self.db_key}))
 
     @allow_sync
     async def list_databases(self):
@@ -143,23 +143,23 @@ class DatabaseInterface:
 
         :return:
         """
-        await self.conn.ws.send(json.dumps({"cmdType": "list_databases", "db_key": self.db_key}))
+        await self.conn.ws.send(json.dumps({"cmd": "list_databases", "db_key": self.db_key}))
         return json.loads(await self.conn.wait_for_response("ld", None, self.db_key))
 
     async def _get_value(self, key):
-        await self.conn.ws.send(json.dumps({"cmdType": "get_val", "key": key, "db_key": self.db_key}))
+        await self.conn.ws.send(json.dumps({"cmd": "get_val", "key": key, "db_key": self.db_key}))
         response = await self.conn.wait_for_response("get_val", key, self.db_key, cmd_type="get_val")
         return response
 
     @allow_sync
     async def set_value(self, key, val):
-        await self.conn.ws.send(json.dumps({"cmdType": "set_val", "key": key, "db_key": self.db_key, "val": val}))
+        await self.conn.ws.send(json.dumps({"cmd": "set_val", "key": key, "db_key": self.db_key, "val": val}))
         response = await self.conn.wait_for_response(cmd_type="set_val")
         return response
 
     @allow_sync
     async def set_value_noack(self, key, val):
-        await self.conn.ws.send(json.dumps({"cmdType": "set_val", "key": key, "db_key": self.db_key, "val": val}))
+        await self.conn.ws.send(json.dumps({"cmd": "set_val", "key": key, "db_key": self.db_key, "val": val}))
         return "no ack"
 
     @allow_sync
@@ -168,41 +168,41 @@ class DatabaseInterface:
 
     @allow_sync
     async def get_index(self, key, index):
-        await self.conn.ws.send(json.dumps({"cmdType": "get_index", "key": key, "db_key": self.db_key, "index":index}))
+        await self.conn.ws.send(json.dumps({"cmd": "get_index", "key": key, "db_key": self.db_key, "index":index}))
         response = await self.conn.wait_for_response("get_indexResp", key, self.db_key)
         return response
 
     @allow_sync
     async def set_index(self, key, index, value):
-        await self.conn.ws.send(json.dumps({"cmdType": "set_index", "key": key, "db_key": self.db_key, "index":index, "value": value}))
+        await self.conn.ws.send(json.dumps({"cmd": "set_index", "key": key, "db_key": self.db_key, "index":index, "value": value}))
         response = await self.conn.wait_for_response("set_indexResp", key, self.db_key)
         return response
 
     @allow_sync
     async def set_index_noack(self, key, index, value):
-        await self.conn.ws.send(json.dumps({"cmdType": "set_index", "key": key, "db_key": self.db_key, "index":index, "value": value}))
+        await self.conn.ws.send(json.dumps({"cmd": "set_index", "key": key, "db_key": self.db_key, "index":index, "value": value}))
         return "no ack"
 
     @allow_sync
     async def append_index(self, key, value):
-        await self.conn.ws.send(json.dumps({"cmdType": "append_index", "key": key, "db_key": self.db_key, "value": value}))
+        await self.conn.ws.send(json.dumps({"cmd": "append_index", "key": key, "db_key": self.db_key, "value": value}))
         response = await self.conn.wait_for_response("app_indexResp", key, self.db_key)
         return response
 
     @allow_sync
     async def append_index_noack(self, key, value):
-        await self.conn.ws.send(json.dumps({"cmdType": "append_index", "key": key, "db_key": self.db_key, "value": value}))
+        await self.conn.ws.send(json.dumps({"cmd": "append_index", "key": key, "db_key": self.db_key, "value": value}))
         return "no ack"
 
     @allow_sync
     async def get_len_index(self, key):
-        await self.conn.ws.send(json.dumps({"cmdType": "get_len_index", "key": key, "db_key": self.db_key}))
+        await self.conn.ws.send(json.dumps({"cmd": "get_len_index", "key": key, "db_key": self.db_key}))
         response = await self.conn.wait_for_response("get_len_indexResp", key, self.db_key)
         return response
 
     @allow_sync
     async def get_recent_index(self, key, num):
-        await self.conn.ws.send(json.dumps({"cmdType": "get_recent_index", "key": key, "db_key": self.db_key, "num":num}))
+        await self.conn.ws.send(json.dumps({"cmd": "get_recent_index", "key": key, "db_key": self.db_key, "num":num}))
         response = await self.conn.wait_for_response("get_recent_indexResp", key, self.db_key)
         return response   
 
@@ -339,17 +339,17 @@ class Connection:
         return self.interfaces[key]
 
     async def create_database(self, db_key):
-        await self.ws.send(json.dumps({"cmdType": "cdb", "db_key": db_key}))
+        await self.ws.send(json.dumps({"cmd": "cdb", "db_key": db_key}))
 
     @allow_sync
     async def authenticate(self, id, token):
         self.id = id
-        await self.ws.send(json.dumps({"cmdType":"a_auth", "id":id, "token":token}))
+        await self.ws.send(json.dumps({"cmd":"a_auth", "id":id, "token":token}))
         return await self.wait_for_response("auth_msg", None, None)
 
     @allow_sync
     async def send_event(self, destination, event_id, data):
-        await self.ws.send(json.dumps({"cmdType":"event", "event_id":event_id, "destination": destination, "data": data, "origin":self.id}))
+        await self.ws.send(json.dumps({"cmd":"event", "event_id":event_id, "destination": destination, "data": data, "origin":self.id}))
 
     def add_event_callback(self, event_callback):
         self.event_callbacks.append(event_callback)
